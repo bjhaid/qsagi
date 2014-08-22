@@ -3,9 +3,18 @@ require "spec_helper"
 describe Qsagi::Queue do
   it "and push and pop from a queue" do
     ExampleQueue.connect do |queue|
-      queue.push("message")
+      queue.push(:payload => "message")
       result = queue.pop
       result.payload.should == "message"
+    end
+  end
+
+  it "allows passing message headers" do
+    ExampleQueue.connect do |queue|
+      queue.push(:payload => "message", :headers => {"id" => "12345", "name" => "foo"})
+      result = queue.pop
+      result.payload.should == "message"
+      result.headers.should == {"id" => "12345", "name" => "foo"}
     end
   end
 
@@ -18,7 +27,7 @@ describe Qsagi::Queue do
         exchange "exchange2"
       end
       queue_on_exchange1.connect do |queue|
-        queue.push "message1"
+        queue.push :payload => "message1"
       end
       queue_on_exchange1.connect do |queue|
         message = queue.pop
@@ -34,7 +43,7 @@ describe Qsagi::Queue do
   describe "clear" do
     it "clears the queue" do
       ExampleQueue.connect do |queue|
-        queue.push("message")
+        queue.push(:payload => "message")
         queue.clear
         queue.pop.should == nil
       end
@@ -44,9 +53,9 @@ describe Qsagi::Queue do
   describe "length" do
     it "returns the number of messages in the queue" do
       ExampleQueue.connect do |queue|
-        queue.push("message")
+        queue.push(:payload => "message")
         queue.length.should == 1
-        queue.push("message")
+        queue.push(:payload => "message")
         queue.length.should == 2
         queue.pop
         queue.length.should == 1
@@ -57,7 +66,7 @@ describe Qsagi::Queue do
   describe "reject" do
     it "rejects the message and places it back on the queue" do
       ExampleQueue.connect do |queue|
-        queue.push("message")
+        queue.push(:payload => "message")
         message = queue.pop(:auto_ack => false)
         queue.reject(message, :requeue => true)
       end
@@ -68,7 +77,7 @@ describe Qsagi::Queue do
 
     it "rejects and discards the message" do
       ExampleQueue.connect do |queue|
-        queue.push("message")
+        queue.push(:payload => "message")
         message = queue.pop(:auto_ack => false)
         queue.reject(message, :requeue => false)
       end
@@ -81,7 +90,7 @@ describe Qsagi::Queue do
   describe "pop" do
     it "automatically acks if :auto_ack is not passed in" do
       ExampleQueue.connect do |queue|
-        queue.push("message")
+        queue.push(:payload => "message")
         message = queue.pop
         message.payload.should == "message"
       end
@@ -93,7 +102,7 @@ describe Qsagi::Queue do
 
     it "will not automatically ack if :auto_ack is set to false" do
       ExampleQueue.connect do |queue|
-        queue.push("message")
+        queue.push(:payload => "message")
         message = queue.pop(:auto_ack => false)
         message.payload.should == "message"
       end
@@ -112,7 +121,7 @@ describe Qsagi::Queue do
   describe "queue_type confirmed" do
     it "should use a ConfirmedQueue" do
       ExampleQueue.connect(:queue_type => :confirmed) do |queue|
-        queue.push("message")
+        queue.push(:payload => "message")
         queue.wait_for_confirms
         queue.nacked_messages.size.should == 0
       end

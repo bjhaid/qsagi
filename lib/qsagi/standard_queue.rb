@@ -47,13 +47,15 @@ module Qsagi
       delivery_info, properties, message = @queue.pop(:ack => !auto_ack)
 
       unless message.nil?
-        _message_class.new(delivery_info, _serializer.deserialize(message))
+        _message_class.new(delivery_info, _serializer.deserialize(message), properties)
       end
     end
 
     def push(message)
-      serialized_message = options[:serializer].serialize(message)
-      @exchange.publish(serialized_message, :routing_key => @queue.name, :persistent => options[:persistent], :mandatory => options[:mandatory])
+      headers = message[:headers]
+      payload = message[:payload]
+      serialized_message = options[:serializer].serialize(payload)
+      @exchange.publish(serialized_message, :routing_key => @queue.name, :persistent => options[:persistent], :mandatory => options[:mandatory], :headers => headers)
     end
 
     def reconnect

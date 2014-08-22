@@ -1,10 +1,11 @@
 module Qsagi
   class Message
-    attr_reader :payload
+    attr_reader :payload, :headers
 
-    def initialize(delivery_details, payload)
+    def initialize(delivery_details, payload, properties = {})
       @delivery_details = delivery_details
       @payload = payload
+      @headers = properties[:headers]
     end
 
     def delivery_tag

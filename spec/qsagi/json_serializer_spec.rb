@@ -18,7 +18,7 @@ describe Qsagi::JsonSerializer do
       serializer Qsagi::JsonSerializer
     end
     json_queue.connect do |queue|
-      queue.push :a => 1
+      queue.push(:payload => {:a => 1})
       queue.pop.payload.should == {'a' => 1}
     end
   end
